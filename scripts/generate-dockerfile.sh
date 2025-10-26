@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cat > Dockerfile <<EOF
 # Stage 1: Build
 FROM node:20 AS builder
 
@@ -39,3 +43,4 @@ ENV NODE_ENV=production
 EXPOSE 5056
 
 CMD ["npm", "run", "start:docker"]
+EOF

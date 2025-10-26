@@ -91,3 +91,23 @@ jdadzok_server.pem
 /generated/prisma
 
 /generated/prisma
+*.secret
+# Deployment files
+.env.production
+.env
+*.pem
+*.key
+*.secret
+deploy_key*
+backups/
+logs/
+
+# Deployment files
+.env.production
+.env
+*.pem
+*.key
+*.secret
+deploy_key*
+backups/
+logs/

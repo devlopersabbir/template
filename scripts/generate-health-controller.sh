@@ -1,10 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Ensure members_json is available
+: "${members_json:?members_json is not set}"
+
+cat > src/health.controller.ts <<EOF
+import { Controller, Get } from '@nestjs/common';
 import appMetadata from "@metadata/app-metadata";
 import { Controller, Get, Res } from "@nestjs/common";
 import { ApiOkResponse } from "@nestjs/swagger";
 import type { Response } from "express";
 
 @Controller()
-export class AppController {
+export class HealthController {
     @ApiOkResponse({
         description: "Returns service health status for monitoring",
         schema: {
@@ -17,7 +25,7 @@ export class AppController {
         },
     })
     @Get("api/health")
-    async getHealthCheck(@Res() res: Response) {
+    health(@Res() res: Response) {
         res.status(200).json({
             status: "ok",
             name: appMetadata.displayName,
@@ -30,16 +38,12 @@ export class AppController {
                 name: "Dev Ninja",
                 leader: "Niloy",
                 members: [
-                    {
-                        name: "Milon",
-                        role: "Backend Developer",
-                    },
-                    {
-                        name: "Sujon",
-                        role: "Backend Developer",
-                    },
+${members_json}
                 ],
             },
         });
     }
 }
+
+// Don't forget to add this controller to your app.module.ts!
+EOF

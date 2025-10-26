@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cat > Dockerfile <<EOF
 node_modules
 dist
 data
@@ -16,15 +20,9 @@ docker-compose.yaml
 generated
 .env.keys
 .env
-jdadzok.pem
-
-node_modules
-dist
-Dockerfile
-.dockerignore
-.env
-.git
-.gitignore
-README.md
-nginx
 .env.production
+*.pem
+*.key
+*.secret
+scripts
+EOF

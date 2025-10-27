@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ "${__FILE_SOURCED:-}" == "1" ]]; then
+  return 0
+fi
+__FILE_SOURCED=1
+
+
 cat > Dockerfile <<EOF
 # Stage 1: Build
 FROM node:20 AS builder

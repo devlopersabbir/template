@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+se -euo pipefail
+
+if [[ "${__FILE_SOURCED:-}" == "1" ]]; then
+  return 0
+fi
+__FILE_SOURCED=1
+
+
+source "${SCRIPT_DIR}/main.sh"
+
+generate_caddyfile(){
+    local DOMAIN=$1
+
+
+    cat > Caddyfile <<EOF
+$DOMAIN {
+    # Reverse proxy to the live container
+    reverse_proxy app_live:{$PORT} {
+        # Load balancing (if scaling horizontally)
+        lb_policy round_robin
+        lb_try_duration 5s
+
+        # Health checks
+        health_uri /api/health
+        health_interval 10s
+        health_timeout 5s
+        health_status 200
+
+        # Failover settings
+        fail_duration 30s
+        max_fails 3
+        unhealthy_status 5xx
+
+        # Headers for proper proxying
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
+        header_up X-Forwarded-Port {server_port}
+
+        # WebSocket support
+        header_up Connection {>Connection}
+        header_up Upgrade {>Upgrade}
+
+        # Timeout settings
+        transport http {
+            dial_timeout 5s
+            response_header_timeout 30s
+            read_timeout 60s
+            write_timeout 60s
+        }
+    }
+
+    # Security headers
+    header {
+        # CORS headers
+        Access-Control-Allow-Origin *
+        Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+        Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With, Accept, Origin"
+        Access-Control-Allow-Credentials true
+        Access-Control-Max-Age 3600
+
+        # Security headers
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy strict-origin-when-cross-origin
+
+        # Remove server identification
+        -Server
+        -X-Powered-By
+    }
+}
+
+# Health check endpoint (accessible without domain)
+:2019 {
+    metrics /metrics
+}
+EOF
+}

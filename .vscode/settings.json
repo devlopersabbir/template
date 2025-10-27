@@ -14,5 +14,8 @@
     "[prisma]": {
         "editor.defaultFormatter": "Prisma.prisma"
     },
-    "cSpell.words": ["offday", "payrate"]
+    "cSpell.words": ["offday", "payrate"],
+    "[shellscript]": {
+        "editor.defaultFormatter": "mads-hartmann.bash-ide-vscode"
+    }
 }

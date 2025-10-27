@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ "${__FILE_SOURCED:-}" == "1" ]]; then
+  return 0
+fi
+__FILE_SOURCED=1
+
 # Ensure members_json is available
 : "${members_json:?members_json is not set}"
 

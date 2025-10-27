@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cat > Dockerfile <<EOF
+if [[ "${__FILE_SOURCED:-}" == "1" ]]; then
+  return 0
+fi
+__FILE_SOURCED=1
+
+
+source "${SCRIPT_DIR}/main.sh"
+
+cat > docker-compose.yaml <<EOF
 services:
     app_live:
         image: ${DOCKER_USERNAME}/${PACKAGE_NAME}:${PACKAGE_VERSION}

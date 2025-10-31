@@ -8,45 +8,53 @@ __FILE_SOURCED=1
 
 
 cat > Dockerfile <<EOF
-# Stage 1: Build
-FROM node:20 AS builder
+FROM node:22 AS builder
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Copy package files
 COPY package*.json ./
-
-# Install deps
-RUN npm i -g pnpm@latest && pnpm i 
-
-# Copy prisma folder
 COPY prisma ./prisma
 COPY prisma.config.ts ./
 
-# Copy source code
+RUN npm install
+
 COPY . .
 
-# Generate Prisma client
-RUN pnpm prisma:generate
+RUN npm run build
 
-# Build the app
-RUN pnpm build
+RUN npm prune --production
 
-# Stage 2: Run
-FROM node:20-alpine
+# stage runtime
+FROM node:22-alpine as runtime
 
-WORKDIR /app
+RUN apk add --no-cache openssl
 
-# Copy build output & dependencies
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+# create non-root user
+RUN adduser -S app && adduser -S -G app app
 
-# Set production env
+WORKDIR /usr/src/app
+
+COPY --from=builder /usr/src/app/package*.json ./
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/prisma ./prisma
+
+COPY scripts/ ./scripts
+
+RUN mkdir -p /usr/src/app/temp
+RUN mkdir -p /usr/src/app/uploads
+RUN mkdir -R app:app /usr/src/app/node_modules/@prisma/engines
+
+RUN chmod +x scripts/wait-for-it.sh
+
+RUN npx prisma generate
+
+RUN chmod +x scripts/entrypoint.sh
+
+# use crated non-root user
+USER app
+
 ENV NODE_ENV=production
-EXPOSE 5056
 
-CMD ["npm", "run", "start:docker"]
-EOF
+EXPOSE 3000
+ENTRYPOINT ["./entrypoint.sh"]

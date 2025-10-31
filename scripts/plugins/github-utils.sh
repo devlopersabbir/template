@@ -8,11 +8,13 @@ set -euo pipefail
 source "${SCRIPT_DIR}/utils/logger.sh"
 
 github_api() {
+  echo "$1"
+  echo "$2"
   local endpoint="$1"
-  local token="$2"
+  local token="$2:-default"
 
-  echo "endpoint: $endpoint"
-  echo "token: $endpoint"
+  echo "endpoint is====: $endpoint"
+  echo "token is====: $token"
   if [[ -n "$token" && "$token" == ghp_* ]]; then
       log_info "🔑 Using token: ${token:0:10}****"
    else

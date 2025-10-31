@@ -19,7 +19,17 @@ CADDY_CONTAINER_NAME="caddy_container"
 # ======= Don't touch ======== #
 
 # ======= Application Configuration Start from here... ======== #
+POSTGRES_USER=softvence_postgres_user
+POSTGRES_PASSWORD=softvence_postgres_password
+POSTGRES_DB=softvence_postgres_db
+
 DATABASE_URL="postgresql://postgres:postgres@db:5432/mydb?connection_limit=10&pool_timeout=30&pgbouncer=true"
+
+# Redis
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_URL="redis://redis:6379"
+
 SALT_ROUND=10
 PORT=$PORT
 

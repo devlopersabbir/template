@@ -11,12 +11,13 @@ source "${SCRIPT_DIR}/main.sh"
 
 generate_caddyfile(){
     local DOMAIN=$1
-
+    local SERVICE_NAME=$2
+    local PORT=$3
 
     cat > Caddyfile <<EOF
 $DOMAIN {
     # Reverse proxy to the live container
-    reverse_proxy app_live:{$PORT} {
+    reverse_proxy {$SERVICE_NAME:$PORT}
         # Load balancing (if scaling horizontally)
         lb_policy round_robin
         lb_try_duration 5s

@@ -28,16 +28,14 @@ if [[ ! -f "package.json" ]]; then
 fi
 
 # Extract metadata
-source "${SCRIPT_DIR}/utils/extractor.sh"
+source "${SCRIPT_DIR}/utils/extract-metadata.sh"
 extract_metadata
 
 
 # Collect user input - this function will export too many thing like
 # DOCKER_USERNAME SE_DOCKER_PASSWORD EMAIL VPS_HOST VPS_USER VPS_SSH_PRIVATE_KEY SE_GIT_TOKEN PORT DOMAIN
 source "${SCRIPT_DIR}/core/stdio.sh"
-echo "before"
 take_input
-echo "after"
 
 # Generate .env.production
 log_info "Creating .env.production..."
@@ -45,16 +43,28 @@ source "${SCRIPT_DIR}/generator/generate-env.sh"
 create_env
 log_success "✅ Successfully generated: .env.production"
 
-# extract all github information
-extract_github_repo_info
+# # extract all github information (works fine as we expect)
+# source "${SCRIPT_DIR}/utils/extract-repository.sh"
+# extract_github_repo_info
 
-# Build team JSON dynamically
-if [[ -n "$contributors" ]]; then
-    source "${SCRIPT_DIR}/parsers/contributor-parser.sh"
-    contribruits_json "$contributors" # comes from extractor utils and extract_github_repo_info functions
-fi
+# # Build team JSON dynamically
+# if [[ -n "$contributors" ]]; then
+#     source "${SCRIPT_DIR}/parsers/contributor-parser.sh"
 
-# Create Caddyfile if domain provided
+#     # Iterate line by line
+#     while IFS= read -r contributor; do
+#         contribruits_json "$contributor"
+#     done <<< "$contributors"
+# fi
+
+# # Convert escaped newlines into actual ones
+# members_json=$(echo -e "$members_json")
+# export members_json
+
+# # Now generate health check controller
+# export members_json
+# source "${SCRIPT_DIR}/generator/generate-health-controller.sh"
+
 if [[ -n "$DOMAIN" ]]; then
     log_info "Creating Caddyfile for domain: $DOMAIN"
     source "${SCRIPT_DIR}/generator/generate-caddyfile.sh"
@@ -62,115 +72,80 @@ if [[ -n "$DOMAIN" ]]; then
     log_success "Created Caddyfile"
 fi
 
-# # Add to .gitignore
-# log_info "Updating .gitignore..."
-# cat >> .gitignore <<EOF
 
-# # Deployment files
-# .env.production
-# .env
-# *.pem
-# *.key
-# *.secret
-# deploy_key*
-# backups/
-# logs/
-# EOF
-# log_success ".gitignore updated"
+# Add to .gitignore
+log_info "Updating .gitignore..."
+cat >> .gitignore <<EOF
 
-# SETUP_CI_CD="scripts/setup-ci-cd.sh"
-# # Generate GitHub Actions
-# if [[ -f $SETUP_CI_CD ]]; then
-#     log_info "Generating GitHub Actions & workflows..."
-#     bash ./$SETUP_CI_CD
-#     log_success "GitHub Actions generated"
-# else
-#     log_warning "$SETUP_CI_CD not found. Please Copy it from the template."
-# fi
+# Deployment files
+.env.production
+.env
+*.pem
+*.key
+*.secret
+deploy_key*
+backups/
+logs/
+prisma/generator/
+EOF
+log_success ".gitignore updated"
 
-# # Generate Dockerfile
-# read -p "Is Dockerfile setup required? (y/n, default: y): " IS_DOCKER
-# IS_DOCKER="${IS_DOCKER:-y}"
-# if [[ "$IS_DOCKER" == "y" || "$IS_DOCKER" == "Y" ]]; then
-#     log_info "Generate Dockerfile"
-#     GENERATE_DOCKERFILE="scripts/generate-dockerfile.sh"
+# Generate GitHub Actions
+log_info "Generating GitHub Actions & workflows..."
+source "${SCRIPT_DIR}/generator/generate-ci.sh"
+log_success "GitHub Actions generated"
 
-#     if [[ -f $GENERATE_DOCKERFILE ]]; then
-#         log_info "Generating Dockerfile..."
-#         bash ./$GENERATE_DOCKERFILE
-#         log_success "✅ Successfully generated: Dockerfile"
-#     else
-#         log_warning "$GENERATE_DOCKERFILE not found. Please Copy it from the template."
-#     fi
+# Generate Dockerfile
+read -p "Is Dockerfile setup required? (y/n, default: y): " IS_DOCKER
+IS_DOCKER="${IS_DOCKER:-y}"
+if [[ "$IS_DOCKER" == "y" || "$IS_DOCKER" == "Y" ]]; then
+    log_info "Generate Dockerfile"
+    GENERATE_DOCKERFILE="scripts/generate-dockerfile.sh"
 
-#     # Asking for generating .dockerignore file
-#     read -p "Do you want to generate .dockerignore file? (y/n, default: y): " IS_GENERATE_DOCKER_IGNORE
-#     IS_GENERATE_DOCKER_IGNORE="${IS_GENERATE_DOCKER_IGNORE:-y}"
-#     if [[ "$IS_GENERATE_DOCKER_IGNORE" == "y" || "${IS_GENERATE_DOCKER_IGNORE}" == "Y" ]]; then
-#         log_info "Generating/updating .dockerignore file"
-#         GENERATE_DOCKER_IGNORE="scripts/generate-dockerignore.sh"
-#         if [[ -f $GENERATE_DOCKER_IGNORE ]]; then
-#             log_info "Generating .dockerignore file"
-#             bash ./$GENERATE_DOCKER_IGNORE
-#         else
-#             log_warning "$GENERATE_DOCKER_IGNORE not found. Please Copy it from the template."
-#         fi
-#     fi
+    if [[ -f $GENERATE_DOCKERFILE ]]; then
+        log_info "Generating Dockerfile..."
+        bash ./$GENERATE_DOCKERFILE
+        log_success "✅ Successfully generated: Dockerfile"
+    else
+        log_warning "$GENERATE_DOCKERFILE not found. Please Copy it from the template."
+    fi
 
-# else
-#     log_warning "Docker setup not required. Skipping Dockerfile generation."
-# fi
+    # Asking for generating .dockerignore file
+    read -p "Do you want to generate .dockerignore file? (y/n, default: y): " IS_GENERATE_DOCKER_IGNORE
+    IS_GENERATE_DOCKER_IGNORE="${IS_GENERATE_DOCKER_IGNORE:-y}"
+    if [[ "$IS_GENERATE_DOCKER_IGNORE" == "y" || "${IS_GENERATE_DOCKER_IGNORE}" == "Y" ]]; then
+        log_info "Generating/updating .dockerignore file"
+        GENERATE_DOCKER_IGNORE="scripts/generate-dockerignore.sh"
+        if [[ -f $GENERATE_DOCKER_IGNORE ]]; then
+            log_info "Generating .dockerignore file"
+            bash ./$GENERATE_DOCKER_IGNORE
+        else
+            log_warning "$GENERATE_DOCKER_IGNORE not found. Please Copy it from the template."
+        fi
+    fi
 
-# # Generate docker-compose.yaml file
-# read -p "Is docker-compose.yaml setup required? (y/n, default: y): " IS_DOCKER_COMPOSE
-# IS_DOCKER_COMPOSE="${IS_DOCKER_COMPOSE:-y}"
-# if [[ "$IS_DOCKER_COMPOSE" == "y" || "$IS_DOCKER_COMPOSE" == "Y" ]]; then
-#     log_info "Generate docker-compose file"
-#     GENERATE_DOCKER_COMPSOE="scripts/generate-dockerfile.sh"
+else
+    log_warning "Docker setup not required. Skipping Dockerfile generation."
+fi
 
-#     if [[ -f $GENERATE_DOCKER_COMPSOE ]]; then
-#         log_info "Generating docker-compose..."
-#         bash ./$GENERATE_DOCKER_COMPSOE
-#         log_success "✅ Successfully generated: $GENERATE_DOCKER_COMPSOE"
-#     else
-#         log_warning "$GENERATE_DOCKER_COMPSOE not found. Please Copy it from the template."
-#     fi
-# else
-#     log_warning "Docker compose setup not required. Skipping docker-compsoe generation."
-# fi
+# Generate docker-compose.yaml file
+read -p "Is docker-compose.yaml setup required? (y/n, default: y): " IS_DOCKER_COMPOSE
+IS_DOCKER_COMPOSE="${IS_DOCKER_COMPOSE:-y}"
+if [[ "$IS_DOCKER_COMPOSE" == "y" || "$IS_DOCKER_COMPOSE" == "Y" ]]; then
+    log_info "Generate docker-compose file"
+    GENERATE_DOCKER_COMPSOE="scripts/generate-dockerfile.sh"
 
-# # Create health check endpoint reminder with members_json
-# export members_json
-# log_success "✅ Successfully generated: src/health.controller.ts"
+    if [[ -f $GENERATE_DOCKER_COMPSOE ]]; then
+        log_info "Generating docker-compose..."
+        bash ./$GENERATE_DOCKER_COMPSOE
+        log_success "✅ Successfully generated: $GENERATE_DOCKER_COMPSOE"
+    else
+        log_warning "$GENERATE_DOCKER_COMPSOE not found. Please Copy it from the template."
+    fi
+else
+    log_warning "Docker compose setup not required. Skipping docker-compsoe generation."
+fi
 
-# echo ""
-# log_success "==================================="
-# log_success "🎉 Project initialized successfully!"
-# log_success "==================================="
-# echo ""
-# log_info "Next steps:"
-# echo ""
-# echo "  1. Review and update .env.production with your actual values"
-# echo "  2. Add health check endpoint to your NestJS app:"
-# echo "     See: src/health.controller.ts"
-# echo ""
-# echo "  3. Set GitHub secrets (required for CI/CD):"
-# echo "     ${YELLOW}gh secret set SE_DOCKER_PASSWORD --body \"your_token\"${RESET}"
-# echo "     ${YELLOW}gh secret set SE_GIT_TOKEN --body \"your_token\"${RESET}"
-# echo "     ${YELLOW}gh secret set VPS_SSH_PRIVATE_KEY --body \"\$(cat ~/.ssh/id_rsa)\"${RESET}"
-# echo ""
-# echo "  4. Setup your VPS server:"
-# echo "     ${YELLOW}ssh $VPS_USER@$VPS_HOST${RESET}"
-# echo "     ${YELLOW}curl -fsSL https://get.docker.com | sh${RESET}"
-# echo ""
-# echo "  5. Test locally:"
-# echo "     ${YELLOW}docker compose --profile prod up --build${RESET}"
-# echo ""
-# echo "  6. Deploy to production:"
-# echo "     ${YELLOW}git add .${RESET}"
-# echo "     ${YELLOW}git commit -m \"Initial deployment setup\"${RESET}"
-# echo "     ${YELLOW}git push origin main${RESET}"
-# echo ""
-# log_info "For detailed instructions, see: DEPLOYMENT.md"
-# echo ""
-# log_success "Happy deploying! 🚀"
+# Create health check endpoint reminder with members_json
+export members_json
+log_success "✅ Successfully generated: src/health.controller.ts"

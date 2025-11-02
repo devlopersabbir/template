@@ -101,6 +101,7 @@ jdadzok_server.pem
 deploy_key*
 backups/
 logs/
+prisma/generated
 
 # Deployment files
 .env.production

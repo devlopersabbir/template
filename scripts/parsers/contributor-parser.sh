@@ -1,39 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# ----------------------------
-# 📘 contributor-parser.sh
-# Parse contributors from GitHub
-# ----------------------------
 
 source "${SCRIPT_DIR}/utils/logger.sh"
+source "${SCRIPT_DIR}/plugins/github-utils.sh"
 
 contribruits_json() {
-  local contributor=$1 # here we will receive a indivisual contributor account username
+  local username="$1"
 
-  echo "contributor: $contributor"
-  members_json=""
-  if [[ ! -n $contributor ]]; then
-    log_error "Contributor not found from perser"
+  log_info "Persing contributors: $username"
+
+  # Fetch contributor info from GitHub API
+  local contributor_data
+  contributor_data=$(github_api "users/$username" "$SE_GIT_TOKEN")
+
+  local name bio
+  name=$(echo "$contributor_data" | grep -o '"name": *"[^"]*"' | head -1 | sed 's/"name": "//; s/"$//')
+  bio=$(echo "$contributor_data" | grep -o '"bio": *"[^"]*"' | head -1 | sed 's/"bio": "//; s/"$//')
+  avatar=$(echo "$contributor_data" | grep -o '"avatar_url": *"[^"]*"' | sed 's/"avatar_url": "//; s/"$//')
+  url=$(echo "$contributor_data" | grep -o '"url": *"[^"]*"' | sed 's/"url": "//; s/"$//')
+
+
+  if [[ -n "$name" && -n "$bio" ]]; then
+    members_json+="          { name: \"$name\", role: \"$bio\", avatar: \"$avatar\", url: \"$url\" },\n"
+
+    log_success "Contributors informations extracted"
   else
-    source "${SCRIPT_DIR}/plugins/github-utils.sh"
-    user_data=$(github_api "users/$contributor" none)
-    echo "user data here: $user_data"
-    name=$(echo "$user_data" | jq -r '.name // .login')
-    bio=$(echo "$user_data" | jq -r '.bio // "Contributor"')
-
-    echo "contributor name: $name"
-    echo "contributor bio: $bio"
-    # members_json+="
-        #{
-        #    name: \"$name\",
-        #    role: \"$bio\"
-        #},"
+    log_error "⚠️ Skipping contributor $username (missing data)"
   fi
-
-  # Remove trailing comma safely
-  members_json=$(echo "$members_json" | sed '$ s/,$//')
-  log_success "Contributors informations extracted"
-
-  export members_json
 }
-

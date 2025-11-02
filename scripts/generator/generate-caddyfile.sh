@@ -1,51 +1,13 @@
 #!/usr/bin/env bash
-se -euo pipefail
+set -euo pipefail
 
-if [[ "${__FILE_SOURCED:-}" == "1" ]]; then
-  return 0
-fi
-__FILE_SOURCED=1
-
-
-source "${SCRIPT_DIR}/main.sh"
-
-generate_caddyfile(){
-    local DOMAIN=$1
-    local SERVICE_NAME=$2
-    local PORT=$3
+generate_caddyfile() {
+    local DOMAIN="$1"
+    local SERVICE_NAME="${2:-app}"
 
     cat > Caddyfile <<EOF
 $DOMAIN {
-    # Reverse proxy to the live container
-    reverse_proxy {$SERVICE_NAME:$PORT}
-        # Load balancing (if scaling horizontally)
-        lb_policy round_robin
-        lb_try_duration 5s
-
-        # Health checks
-        health_uri /api/health
-        health_interval 10s
-        health_timeout 5s
-        health_status 200
-
-        # Failover settings
-        fail_duration 30s
-        max_fails 3
-        unhealthy_status 5xx
-
-        # Headers for proper proxying
-        header_up Host {upstream_hostport}
-        header_up X-Real-IP {remote_host}
-        header_up X-Forwarded-For {remote_host}
-        header_up X-Forwarded-Proto {scheme}
-        header_up X-Forwarded-Host {host}
-        header_up X-Forwarded-Port {server_port}
-
-        # WebSocket support
-        header_up Connection {>Connection}
-        header_up Upgrade {>Upgrade}
-
-        # Timeout settings
+    reverse_proxy ${SERVICE_NAME}:${PORT} {
         transport http {
             dial_timeout 5s
             response_header_timeout 30s
@@ -54,7 +16,6 @@ $DOMAIN {
         }
     }
 
-    # Security headers
     header {
         # CORS headers
         Access-Control-Allow-Origin *
@@ -75,7 +36,6 @@ $DOMAIN {
     }
 }
 
-# Health check endpoint (accessible without domain)
 :2019 {
     metrics /metrics
 }

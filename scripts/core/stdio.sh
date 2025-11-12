@@ -1,18 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ----------------------------
-# 📘 stdio.sh
-# Takes input from user
-# ----------------------------
-# if [[ "${__FILE_SOURCED:-}" == "1" ]]; then
-#   return 0
-# fi
-# __FILE_SOURCED=1
-
-source "${SCRIPT_DIR}/utils/logger.sh"
-
-take_input() {
+takeInitialInput() {
     echo ""
     log_info "Please provide the following information:"
     echo ""

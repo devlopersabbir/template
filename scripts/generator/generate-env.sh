@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
 create_env(){
+log_info "Creating .env.production..."
+
 cat > .env.production <<EOF
 # ======= Auto-generated - Don't touch ======== #
 DOCKER_USERNAME=$DOCKER_USERNAME
@@ -60,4 +61,6 @@ SERVER_URL=${SERVER_URL:-http://localhost:$PORT}
 # TWILIO_ACCOUNT_SID=here..
 # TWILIO_AUTH_TOKEN=here..
 EOF
+
+log_success "✅ Successfully generated: .env.production"
 }

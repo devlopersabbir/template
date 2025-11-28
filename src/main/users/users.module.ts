@@ -1,3 +1,4 @@
+import { MailModule } from "@global/mail/mail.module";
 import { S3Module } from "@global/s3/s3.module";
 import { Module } from "@nestjs/common";
 import { UserRepository } from "./auth.repository";
@@ -13,6 +14,14 @@ import { UsersController } from "./users.controller";
             cache: {
                 isCache: true,
                 options: {},
+            },
+        }),
+        MailModule.forRoot({
+            transport: {
+                auth: {
+                    user: "",
+                    pass: "",
+                },
             },
         }),
     ],

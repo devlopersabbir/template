@@ -3,5 +3,6 @@ model User {
   email String  @unique
   name  String?
   posts Post[]
-}
 
+  @@map("user")
+}

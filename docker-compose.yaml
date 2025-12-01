@@ -1,0 +1,48 @@
+services:
+    app:
+        image: softvence/${PACKAGE_NAME}:latest
+        container_name: ${PACKAGE_NAME}
+        profiles:
+            - prod
+        platform: linux/amd64
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - "${PORT}:${PORT}"
+        env_file:
+            - .env
+        depends_on:
+            db:
+                condition: service_healthy
+        restart: unless-stopped
+
+    db:
+        image: postgres:16-alpine
+        container_name: pg-db
+        profiles:
+            - dev
+            - prod
+        environment:
+            - POSTGRES_USER=${PG_USERNAME}
+            - POSTGRES_PASSWORD=${PG_PASSWORD}
+            - POSTGRES_DB=${PG_DATABASE}
+            - PGDATA=/var/lib/postgresql/data/pgdata
+        ports:
+            - "${PG_PORT}:${PG_PORT}"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${PG_USERNAME} -d ${PG_DATABASE}"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+        restart: unless-stopped
+
+volumes:
+    postgres_data:
+        driver: local
+
+networks:
+    default:

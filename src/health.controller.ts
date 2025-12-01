@@ -1,6 +1,6 @@
 import { Controller, Get, Res } from "@nestjs/common";
-import appMetadata from "@metadata/app-metadata";
 import { ApiOkResponse } from "@nestjs/swagger";
+import { appMetadata } from "@softvence/mail";
 import type { Response } from "express";
 
 @Controller()

@@ -1,6 +1,6 @@
-import { MailModule } from "@global/mail/mail.module";
-import { S3Module } from "@global/s3/s3.module";
 import { Module } from "@nestjs/common";
+import { MailModule } from "@softvence/mail";
+import { S3Module } from "@softvence/s3";
 import { UserRepository } from "./auth.repository";
 import { UsersController } from "./users.controller";
 

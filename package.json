@@ -7,10 +7,7 @@
     "license": "UNLICENSED",
     "scripts": {
         "build": "nest build",
-        "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
         "lint": "eslint . --ext .ts",
-        "lint:fix": "eslint . --ext .ts --fix",
-        "start": "nest start",
         "dev": "npx prisma generate && npx prisma migrate deploy && nest start --watch",
         "start:prod": "node dist/main",
         "start": "npx prisma generate && npx prisma migrate deploy && node dist/main",

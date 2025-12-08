@@ -1,7 +1,7 @@
 import { Controller, Get, Res } from "@nestjs/common";
 import { ApiOkResponse } from "@nestjs/swagger";
-import { appMetadata } from "@softvence/mail";
 import type { Response } from "express";
+import appMetadata from "@metadata/app-metadata";
 
 @Controller()
 export class HealthController {
@@ -20,6 +20,7 @@ export class HealthController {
     health(@Res() res: Response) {
         res.status(200).json({
             status: "ok",
+            packaeName: appMetadata.name,
             name: appMetadata.displayName,
             version: appMetadata.version,
             description: appMetadata.description,

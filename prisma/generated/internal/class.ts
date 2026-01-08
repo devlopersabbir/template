@@ -23,7 +23,7 @@ const config: runtime.GetPrismaClientConfig = {
       "value": "prisma-client"
     },
     "output": {
-      "value": "/home/sabbir/own/template/prisma/generated",
+      "value": "/home/sabbir/devops/template/prisma/generated",
       "fromEnvVar": null
     },
     "config": {
@@ -37,12 +37,12 @@ const config: runtime.GetPrismaClientConfig = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/home/sabbir/own/template/prisma/models/schema.prisma",
+    "sourceFilePath": "/home/sabbir/devops/template/prisma/models/schema.prisma",
     "isCustomOutput": true
   },
   "relativePath": "../models",
-  "clientVersion": "6.19.0",
-  "engineVersion": "2ba551f319ab1df4bc874a89965d8b3641056773",
+  "clientVersion": "6.19.1",
+  "engineVersion": "c2990dca591cba766e3b7ef5d9e8a84796e47ab7",
   "datasourceNames": [
     "db"
   ],

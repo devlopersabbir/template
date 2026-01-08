@@ -1,0 +1,31 @@
+image: node:20
+
+stages:
+    - test
+    - build
+
+variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+
+test_app:
+    stage: test
+    rules:
+        - if: '$CI_COMMIT_BRANCH != "main" && $CI_COMMIT_BRANCH != "dev"'
+    script:
+        - npm install --force
+        - npm run ci:fix
+        - npm run build
+
+build_push_image:
+    stage: build
+    image: docker:24
+    services:
+        - docker:24-dind
+    rules:
+        - if: '$CI_COMMIT_BRANCH == "dev"'
+    before_script:
+        # Docker login (secure)
+        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    script:
+        - docker build --no-cache -t $DOCKER_USERNAME/$PACKAGE:latest .
+        - docker push $DOCKER_USERNAME/$PACKAGE:latest

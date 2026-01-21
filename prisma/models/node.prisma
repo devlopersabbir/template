@@ -1,0 +1,14 @@
+model Node {
+    id             Int         @id @default(autoincrement())
+    name           String
+    type           NodeType    @default(INTERMEDIATE) // Enum: LEAF for data entry, INTERMEDIATE for parents
+    parentId       Int? // Self-referential for tree
+    projectId      Int
+    children       Node[]      @relation("NodeChildren")
+    parent         Node?       @relation("NodeChildren", fields: [parentId], references: [id])
+    project        Project     @relation(fields: [projectId], references: [id])
+    dataEntries    DataEntry[]
+    aggregatedData Json? // Store aggregated data as JSON for flexibility (e.g., {value: 100, categories: {...}})
+    createdAt      DateTime    @default(now())
+    updatedAt      DateTime    @updatedAt
+}

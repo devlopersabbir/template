@@ -9,21 +9,21 @@
 * 🟢 You can import this file directly.
 */
 
-export const AuthProvider = {
-  GOOGLE: 'GOOGLE',
-  APPLE: 'APPLE',
-  EMAIL: 'EMAIL',
-  FACEBOOK: 'FACEBOOK'
+export const ChartType = {
+  PIE: 'PIE',
+  BAR: 'BAR',
+  LINE: 'LINE',
+  DONUT_PIE: 'DONUT_PIE',
+  HEATMAP: 'HEATMAP'
 } as const
 
-export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider]
+export type ChartType = (typeof ChartType)[keyof typeof ChartType]
 
 
-export const Role = {
-  USER: 'USER',
-  MODERATOR: 'MODERATOR',
-  ADMIN: 'ADMIN',
-  SUPER_ADMIN: 'SUPER_ADMIN'
+export const NodeType = {
+  LEAF: 'LEAF',
+  INTERMEDIATE: 'INTERMEDIATE',
+  ROOT: 'ROOT'
 } as const
 
-export type Role = (typeof Role)[keyof typeof Role]
+export type NodeType = (typeof NodeType)[keyof typeof NodeType]

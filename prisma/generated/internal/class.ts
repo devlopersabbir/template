@@ -20,7 +20,7 @@ const config: runtime.GetPrismaClientConfig = {
   "clientVersion": "7.2.0",
   "engineVersion": "0c8ef2ce45c83248ab3df073180d5eda9e8be7a3",
   "activeProvider": "postgresql",
-  "inlineSchema": "// ENUMS_START\n\nenum AuthProvider {\n  GOOGLE\n  APPLE\n  EMAIL\n  FACEBOOK\n}\n\nenum Role {\n  USER\n  MODERATOR\n  ADMIN\n  SUPER_ADMIN\n}\n\n// ENUMS_END\n\nmodel Post {\n  id        Int     @id @default(autoincrement())\n  title     String\n  content   String?\n  published Boolean @default(false)\n  author    User    @relation(fields: [authorId], references: [id])\n  authorId  Int\n\n  @@index([id])\n  @@index([authorId])\n  @@map(\"post\")\n}\n\ngenerator client {\n  provider   = \"prisma-client\"\n  engineType = \"client\"\n  output     = \"../generated\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel User {\n  id    Int     @id @default(autoincrement())\n  email String  @unique\n  name  String?\n  posts Post[]\n\n  @@map(\"user\")\n}\n",
+  "inlineSchema": "model DataEntry {\n  id        Int      @id @default(autoincrement())\n  nodeId    Int\n  value     Json // Flexible JSON for chart-specific data (e.g., {category: \"Red\", value: 50} for pie)\n  node      Node     @relation(fields: [nodeId], references: [id])\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\n// ENUMS_START\n\nenum ChartType {\n  PIE\n  BAR\n  LINE\n  DONUT_PIE\n  HEATMAP\n}\n\nenum NodeType {\n  LEAF\n  INTERMEDIATE\n  ROOT\n}\n\n// ENUMS_END\n\nmodel Node {\n  id             Int         @id @default(autoincrement())\n  name           String\n  type           NodeType    @default(INTERMEDIATE) // Enum: LEAF for data entry, INTERMEDIATE for parents\n  parentId       Int? // Self-referential for tree\n  projectId      Int\n  children       Node[]      @relation(\"NodeChildren\")\n  parent         Node?       @relation(\"NodeChildren\", fields: [parentId], references: [id])\n  project        Project     @relation(fields: [projectId], references: [id])\n  dataEntries    DataEntry[]\n  aggregatedData Json? // Store aggregated data as JSON for flexibility (e.g., {value: 100, categories: {...}})\n  createdAt      DateTime    @default(now())\n  updatedAt      DateTime    @updatedAt\n}\n\nmodel Program {\n  id        Int       @id @default(autoincrement())\n  name      String\n  projects  Project[]\n  createdAt DateTime  @default(now())\n  updatedAt DateTime  @updatedAt\n}\n\nmodel Project {\n  id        Int       @id @default(autoincrement())\n  name      String\n  programId Int\n  chartType ChartType @default(PIE) // Enum for chart types\n  nodes     Node[] // Root nodes of the tree\n  program   Program   @relation(fields: [programId], references: [id])\n  createdAt DateTime  @default(now())\n  updatedAt DateTime  @updatedAt\n}\n\ngenerator client {\n  provider   = \"prisma-client\"\n  engineType = \"client\"\n  output     = \"../generated\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n",
   "runtimeDataModel": {
     "models": {},
     "enums": {},
@@ -28,7 +28,7 @@ const config: runtime.GetPrismaClientConfig = {
   }
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Post\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"published\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"author\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"PostToUser\"},{\"name\":\"authorId\",\"kind\":\"scalar\",\"type\":\"Int\"}],\"dbName\":\"post\"},\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"posts\",\"kind\":\"object\",\"type\":\"Post\",\"relationName\":\"PostToUser\"}],\"dbName\":\"user\"}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"DataEntry\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"nodeId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"value\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"node\",\"kind\":\"object\",\"type\":\"Node\",\"relationName\":\"DataEntryToNode\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Node\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"type\",\"kind\":\"enum\",\"type\":\"NodeType\"},{\"name\":\"parentId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"projectId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"children\",\"kind\":\"object\",\"type\":\"Node\",\"relationName\":\"NodeChildren\"},{\"name\":\"parent\",\"kind\":\"object\",\"type\":\"Node\",\"relationName\":\"NodeChildren\"},{\"name\":\"project\",\"kind\":\"object\",\"type\":\"Project\",\"relationName\":\"NodeToProject\"},{\"name\":\"dataEntries\",\"kind\":\"object\",\"type\":\"DataEntry\",\"relationName\":\"DataEntryToNode\"},{\"name\":\"aggregatedData\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Program\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"projects\",\"kind\":\"object\",\"type\":\"Project\",\"relationName\":\"ProgramToProject\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Project\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"programId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"chartType\",\"kind\":\"enum\",\"type\":\"ChartType\"},{\"name\":\"nodes\",\"kind\":\"object\",\"type\":\"Node\",\"relationName\":\"NodeToProject\"},{\"name\":\"program\",\"kind\":\"object\",\"type\":\"Program\",\"relationName\":\"ProgramToProject\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
@@ -58,8 +58,8 @@ export interface PrismaClientConstructor {
    * @example
    * ```
    * const prisma = new PrismaClient()
-   * // Fetch zero or more Posts
-   * const posts = await prisma.post.findMany()
+   * // Fetch zero or more DataEntries
+   * const dataEntries = await prisma.dataEntry.findMany()
    * ```
    * 
    * Read more in our [docs](https://pris.ly/d/client).
@@ -80,8 +80,8 @@ export interface PrismaClientConstructor {
  * @example
  * ```
  * const prisma = new PrismaClient()
- * // Fetch zero or more Posts
- * const posts = await prisma.post.findMany()
+ * // Fetch zero or more DataEntries
+ * const dataEntries = await prisma.dataEntry.findMany()
  * ```
  * 
  * Read more in our [docs](https://pris.ly/d/client).
@@ -175,24 +175,44 @@ export interface PrismaClient<
   }>>
 
       /**
-   * `prisma.post`: Exposes CRUD operations for the **Post** model.
+   * `prisma.dataEntry`: Exposes CRUD operations for the **DataEntry** model.
     * Example usage:
     * ```ts
-    * // Fetch zero or more Posts
-    * const posts = await prisma.post.findMany()
+    * // Fetch zero or more DataEntries
+    * const dataEntries = await prisma.dataEntry.findMany()
     * ```
     */
-  get post(): Prisma.PostDelegate<ExtArgs, { omit: OmitOpts }>;
+  get dataEntry(): Prisma.DataEntryDelegate<ExtArgs, { omit: OmitOpts }>;
 
   /**
-   * `prisma.user`: Exposes CRUD operations for the **User** model.
+   * `prisma.node`: Exposes CRUD operations for the **Node** model.
     * Example usage:
     * ```ts
-    * // Fetch zero or more Users
-    * const users = await prisma.user.findMany()
+    * // Fetch zero or more Nodes
+    * const nodes = await prisma.node.findMany()
     * ```
     */
-  get user(): Prisma.UserDelegate<ExtArgs, { omit: OmitOpts }>;
+  get node(): Prisma.NodeDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.program`: Exposes CRUD operations for the **Program** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Programs
+    * const programs = await prisma.program.findMany()
+    * ```
+    */
+  get program(): Prisma.ProgramDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.project`: Exposes CRUD operations for the **Project** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Projects
+    * const projects = await prisma.project.findMany()
+    * ```
+    */
+  get project(): Prisma.ProjectDelegate<ExtArgs, { omit: OmitOpts }>;
 }
 
 export function getPrismaClientClass(): PrismaClientConstructor {

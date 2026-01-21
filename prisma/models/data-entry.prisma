@@ -1,0 +1,8 @@
+model DataEntry {
+    id        Int      @id @default(autoincrement())
+    nodeId    Int
+    value     Json // Flexible JSON for chart-specific data (e.g., {category: "Red", value: 50} for pie)
+    node      Node     @relation(fields: [nodeId], references: [id])
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}

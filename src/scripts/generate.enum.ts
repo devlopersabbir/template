@@ -1,7 +1,7 @@
+import * as constantEnum from "@constant/enums";
+import { capitalize } from "@util/functions";
 import fs from "fs";
 import path from "path";
-import { capitalize } from "@util/functions";
-import * as constantEnum from "@constant/enums";
 
 const enums: Record<string, readonly string[]> = {
     ...constantEnum,

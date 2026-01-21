@@ -114,3 +114,5 @@ prisma/generated
 deploy_key*
 backups/
 logs/
+temp_auto_push.bat
+temp_interactive_push.bat

@@ -1,0 +1,10 @@
+model Project {
+    id        Int       @id @default(autoincrement())
+    name      String
+    programId Int
+    chartType ChartType @default(PIE) // Enum for chart types
+    nodes     Node[] // Root nodes of the tree
+    program   Program   @relation(fields: [programId], references: [id])
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+}

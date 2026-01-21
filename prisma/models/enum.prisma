@@ -1,17 +1,17 @@
 // ENUMS_START
 
-enum AuthProvider {
-  GOOGLE
-  APPLE
-  EMAIL
-  FACEBOOK
+enum ChartType {
+  PIE
+  BAR
+  LINE
+  DONUT_PIE
+  HEATMAP
 }
 
-enum Role {
-  USER
-  MODERATOR
-  ADMIN
-  SUPER_ADMIN
+enum NodeType {
+  LEAF
+  INTERMEDIATE
+  ROOT
 }
 
 // ENUMS_END

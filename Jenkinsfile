@@ -11,6 +11,5 @@ pipeline {
         git(url: 'https://github.com/devlopersabbir/template', branch: 'main')
       }
     }
-
   }
 }

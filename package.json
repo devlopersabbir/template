@@ -36,6 +36,7 @@
         "@nestjs/core": "^11.0.1",
         "@nestjs/platform-express": "^11.0.1",
         "@nestjs/swagger": "^11.2.1",
+        "@prisma/adapter-pg": "^7.2.0",
         "@prisma/client": "^7.2.0",
         "@softvence/mail": "^0.0.5",
         "@softvence/s3": "^0.0.5",
